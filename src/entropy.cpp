@@ -6,14 +6,14 @@
 // [[Rcpp::plugins(cpp17)]] 
 
 // [[Rcpp::export]]
-double entropy(Rcpp::NumericVector p) {
+double entropy(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * Rcpp::log(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
 }
 
 // [[Rcpp::export]]
-double entropy2(Rcpp::NumericVector p) {
+double entropy2(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * log2(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
@@ -21,7 +21,7 @@ double entropy2(Rcpp::NumericVector p) {
 
 
 // [[Rcpp::export]]
-double entropy10(Rcpp::NumericVector p) {
+double entropy10(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * Rcpp::log10(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
@@ -31,7 +31,7 @@ double entropy10(Rcpp::NumericVector p) {
 
 
 // [[Rcpp::export]]
-double mutual_information2(Rcpp::NumericMatrix ps) {
+double mutual_information2(Rcpp::NumericMatrix& ps) {
   if (ps.ncol() != 3) {
     Rcpp::stop("Unexpected");
   }

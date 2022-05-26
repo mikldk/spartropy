@@ -37,3 +37,15 @@ normalise_2d <- function(x) {
     .Call(`_spartropy_normalise_2d`, x)
 }
 
+mutual_information_implicit <- function(x, is, js) {
+    .Call(`_spartropy_mutual_information_implicit`, x, is, js)
+}
+
+mutual_information2_implicit <- function(x, is, js) {
+    .Call(`_spartropy_mutual_information2_implicit`, x, is, js)
+}
+
+mutual_information10_implicit <- function(x, is, js) {
+    .Call(`_spartropy_mutual_information10_implicit`, x, is, js)
+}
+

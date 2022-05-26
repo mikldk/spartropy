@@ -6,7 +6,7 @@ using namespace Rcpp;
 // [[Rcpp::plugins(cpp17)]] 
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector frequencies(Rcpp::IntegerMatrix x) {
+Rcpp::IntegerVector frequencies(Rcpp::IntegerMatrix& x) {
   std::unordered_map<std::vector<int>, size_t, int_vector_hasher> counts;
   
   Rcpp::IntegerMatrix xt = Rcpp::transpose(x);
@@ -30,7 +30,7 @@ Rcpp::IntegerVector frequencies(Rcpp::IntegerMatrix x) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector normalise(Rcpp::IntegerVector x) {
+Rcpp::NumericVector normalise(Rcpp::IntegerVector& x) {
   double s = (double)Rcpp::sum(x);
   size_t n = x.size();
   
@@ -47,7 +47,7 @@ Rcpp::NumericVector normalise(Rcpp::IntegerVector x) {
 
 // https://stackoverflow.com/a/62118438
 // [[Rcpp::export]]
-Rcpp::IntegerMatrix matrix_subset(Rcpp::IntegerMatrix x, Rcpp::IntegerVector y) { 
+Rcpp::IntegerMatrix matrix_subset(Rcpp::IntegerMatrix& x, Rcpp::IntegerVector& y) { 
   
   // Determine the number of columns
   size_t n_cols_out = y.size();
@@ -63,17 +63,13 @@ Rcpp::IntegerMatrix matrix_subset(Rcpp::IntegerMatrix x, Rcpp::IntegerVector y) 
   return out;
 }
 
-// H(i | j)
-// [[Rcpp::export]]
-Rcpp::IntegerMatrix frequencies_2d(
-    Rcpp::IntegerMatrix x, 
-    Rcpp::IntegerVector is, 
-    Rcpp::IntegerVector js) {
-  
-  std::unordered_map<std::vector<int>, size_t, int_vector_hasher> n_is;
-  std::unordered_map<std::vector<int>, size_t, int_vector_hasher> n_js;
-  std::unordered_map<std::pair< std::vector<int>, std::vector<int> >,
-                     size_t, int_vector_pair_hasher> n_ijs;
+void fill_maps(Rcpp::IntegerMatrix& x, 
+               Rcpp::IntegerVector& is, 
+               Rcpp::IntegerVector& js,
+               
+               std::unordered_map<std::vector<int>, size_t, int_vector_hasher>& n_is,
+               std::unordered_map<std::vector<int>, size_t, int_vector_hasher>& n_js,
+               std::unordered_map<std::pair< std::vector<int>, std::vector<int> >, size_t, int_vector_pair_hasher>& n_ijs) {
   
   size_t n = x.nrow();
   
@@ -94,6 +90,22 @@ Rcpp::IntegerMatrix frequencies_2d(
     std::pair< std::vector<int>, std::vector<int> > p = std::make_pair(v_is_k, v_js_k);
     n_ijs[p]++;
   }
+}
+
+// H(i | j)
+// [[Rcpp::export]]
+Rcpp::IntegerMatrix frequencies_2d(
+    Rcpp::IntegerMatrix& x, 
+    Rcpp::IntegerVector& is, 
+    Rcpp::IntegerVector& js) {
+  
+  std::unordered_map<std::vector<int>, size_t, int_vector_hasher> n_is;
+  std::unordered_map<std::vector<int>, size_t, int_vector_hasher> n_js;
+  std::unordered_map<std::pair< std::vector<int>, std::vector<int> >,
+                     size_t, int_vector_pair_hasher> n_ijs;
+  
+  fill_maps(x, is, js,
+            n_is,n_js, n_ijs);
   
   std::vector< std::tuple<int, int, int> > res_tuple;
   
@@ -128,7 +140,7 @@ Rcpp::IntegerMatrix frequencies_2d(
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix normalise_2d(Rcpp::IntegerMatrix x) {
+Rcpp::NumericMatrix normalise_2d(Rcpp::IntegerMatrix& x) {
   if (x.ncol() != 3) {
     Rcpp::stop("Unexpected");
   }
@@ -155,3 +167,75 @@ Rcpp::NumericMatrix normalise_2d(Rcpp::IntegerMatrix x) {
 }
 
 
+
+// H(i | j)
+double mutual_information_implicit_worker(
+    Rcpp::IntegerMatrix& x, 
+    Rcpp::IntegerVector& is, 
+    Rcpp::IntegerVector& js, 
+    std::function<double(double)> log_func) {
+  
+  std::unordered_map<std::vector<int>, size_t, int_vector_hasher> n_is;
+  std::unordered_map<std::vector<int>, size_t, int_vector_hasher> n_js;
+  std::unordered_map<std::pair< std::vector<int>, std::vector<int> >,
+                     size_t, int_vector_pair_hasher> n_ijs;
+  
+  fill_maps(x, is, js,
+            n_is,n_js, n_ijs);
+  
+  double s = (double)x.nrow();
+  double ent = 0.0;
+  
+  for (std::pair<std::vector<int>, int> e1 : n_is) {
+    double p_x = (double)e1.second / s;
+    
+    for (std::pair<std::vector<int>, int> e2 : n_js) {
+      
+      
+      std::pair< std::vector<int>, std::vector<int> > p = std::make_pair(e1.first, e2.first);
+      auto simultan = n_ijs.find(p);
+      
+      if (simultan == n_ijs.end()) {
+        continue;
+      }
+      
+      double p_y = (double)e2.second  / s;
+      double p_xy = (double)simultan->second / s;
+      
+      ent += p_xy * log_func( p_xy / (p_x * p_y));
+    }
+  }
+  
+  return ent;
+}
+
+
+// H(i | j)
+// [[Rcpp::export]]
+double mutual_information_implicit(
+    Rcpp::IntegerMatrix& x, 
+    Rcpp::IntegerVector& is, 
+    Rcpp::IntegerVector& js) {
+  
+  return mutual_information_implicit_worker(x, is, js, (double(*)(double))&std::log);
+}
+
+// H(i | j)
+// [[Rcpp::export]]
+double mutual_information2_implicit(
+    Rcpp::IntegerMatrix& x, 
+    Rcpp::IntegerVector& is, 
+    Rcpp::IntegerVector& js) {
+  
+  return mutual_information_implicit_worker(x, is, js, (double(*)(double))&std::log2);
+}
+
+// H(i | j)
+// [[Rcpp::export]]
+double mutual_information10_implicit(
+    Rcpp::IntegerMatrix& x, 
+    Rcpp::IntegerVector& is, 
+    Rcpp::IntegerVector& js) {
+  
+  return mutual_information_implicit_worker(x, is, js, (double(*)(double))&std::log10);
+}

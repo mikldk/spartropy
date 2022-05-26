@@ -53,4 +53,47 @@ test_that("mutual_information", {
 })
 
 
+test_that("mutual_information", {
+  x <- matrix(c(
+    1, 1, 
+    2, 1, 
+    1, 2, 
+    2, 2, 
+    2, 2
+  ), ncol = 2, byrow = TRUE)
+  
+  ps <- frequencies_2d(x, 0, 1) |> normalise_2d()
+  mi <- mutual_information2(ps)
+  
+  expect_equal(mi, mutual_information2_implicit(x, 0, 1))
+  
+  ####
+  
+  x2 <- rbind(x, x, x, x, x, x, x)
+  x3 <- rbind(x2, x2 + 1, x2 + 1, x2 + 1, x2 + 2)
+  x4 <- rbind(x3, x3, x3 + 4, x3 + 8, x3 + 10, x3, x3)
+  x5 <- rbind(x4, x4, x4, x4, x4, x4, x4)
+  x6 <- cbind(x5, rev(x5[, 1]))
+  x_big <- x6
+  
+  expect_equal(frequencies_2d(x_big, 0, 1) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, 0, 1))
+  
+  expect_equal(frequencies_2d(x_big, c(0, 2), 1) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, c(0, 2), 1))
+  
+  expect_equal(frequencies_2d(x_big, c(0, 1), 2) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, c(0, 1), 2))
+  
+  expect_equal(frequencies_2d(x_big, 0, c(1, 2)) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, 0, c(1, 2)))
+  
+  if (FALSE) {
+    microbenchmark::microbenchmark(
+      frequencies_2d(x_big, c(0, 2), 1) |> normalise_2d() |> mutual_information2(),
+      mutual_information2_implicit(x_big, c(0, 2), 1)
+    )
+  }
+})
+
 
