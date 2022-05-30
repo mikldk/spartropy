@@ -6,7 +6,7 @@ using namespace Rcpp;
 // [[Rcpp::plugins(cpp17)]] 
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector frequencies(Rcpp::IntegerMatrix& x) {
+Rcpp::IntegerVector frequencies_(Rcpp::IntegerMatrix& x) {
   std::unordered_map<std::vector<int>, size_t, int_vector_hasher> counts;
   
   Rcpp::IntegerMatrix xt = Rcpp::transpose(x);
@@ -30,7 +30,7 @@ Rcpp::IntegerVector frequencies(Rcpp::IntegerMatrix& x) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector normalise(Rcpp::IntegerVector& x) {
+Rcpp::NumericVector normalise_(Rcpp::IntegerVector& x) {
   double s = (double)Rcpp::sum(x);
   size_t n = x.size();
   
@@ -46,7 +46,6 @@ Rcpp::NumericVector normalise(Rcpp::IntegerVector& x) {
 //////////////////////////////
 
 // https://stackoverflow.com/a/62118438
-// [[Rcpp::export]]
 Rcpp::IntegerMatrix matrix_subset(Rcpp::IntegerMatrix& x, Rcpp::IntegerVector& y) { 
   
   // Determine the number of columns
@@ -94,7 +93,7 @@ void fill_maps(Rcpp::IntegerMatrix& x,
 
 // H(i | j)
 // [[Rcpp::export]]
-Rcpp::IntegerMatrix frequencies_2d(
+Rcpp::IntegerMatrix frequencies_2d_(
     Rcpp::IntegerMatrix& x, 
     Rcpp::IntegerVector& is, 
     Rcpp::IntegerVector& js) {
@@ -140,7 +139,7 @@ Rcpp::IntegerMatrix frequencies_2d(
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix normalise_2d(Rcpp::IntegerMatrix& x) {
+Rcpp::NumericMatrix normalise_2d_(Rcpp::IntegerMatrix& x) {
   if (x.ncol() != 3) {
     Rcpp::stop("Unexpected");
   }
@@ -212,7 +211,7 @@ double mutual_information_implicit_worker(
 
 // H(i | j)
 // [[Rcpp::export]]
-double mutual_information_implicit(
+double mutual_information_implicit_(
     Rcpp::IntegerMatrix& x, 
     Rcpp::IntegerVector& is, 
     Rcpp::IntegerVector& js) {
@@ -222,7 +221,7 @@ double mutual_information_implicit(
 
 // H(i | j)
 // [[Rcpp::export]]
-double mutual_information2_implicit(
+double mutual_information2_implicit_(
     Rcpp::IntegerMatrix& x, 
     Rcpp::IntegerVector& is, 
     Rcpp::IntegerVector& js) {
@@ -232,7 +231,7 @@ double mutual_information2_implicit(
 
 // H(i | j)
 // [[Rcpp::export]]
-double mutual_information10_implicit(
+double mutual_information10_implicit_(
     Rcpp::IntegerMatrix& x, 
     Rcpp::IntegerVector& is, 
     Rcpp::IntegerVector& js) {

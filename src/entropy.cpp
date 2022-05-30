@@ -6,14 +6,14 @@
 // [[Rcpp::plugins(cpp17)]] 
 
 // [[Rcpp::export]]
-double entropy(Rcpp::NumericVector& p) {
+double entropy_(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * Rcpp::log(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
 }
 
 // [[Rcpp::export]]
-double entropy2(Rcpp::NumericVector& p) {
+double entropy2_(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * log2(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
@@ -21,7 +21,7 @@ double entropy2(Rcpp::NumericVector& p) {
 
 
 // [[Rcpp::export]]
-double entropy10(Rcpp::NumericVector& p) {
+double entropy10_(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * Rcpp::log10(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
@@ -29,9 +29,24 @@ double entropy10(Rcpp::NumericVector& p) {
 
 ////////////////////////////////////////////////////////
 
+// FIXME: Using function types instead?
 
 // [[Rcpp::export]]
-double mutual_information2(Rcpp::NumericMatrix& ps) {
+double mutual_information_(Rcpp::NumericMatrix& ps) {
+  if (ps.ncol() != 3) {
+    Rcpp::stop("Unexpected");
+  }
+  
+  Rcpp::NumericVector p_x = ps(Rcpp::_, 0);
+  Rcpp::NumericVector p_y = ps(Rcpp::_, 1);
+  Rcpp::NumericVector p_xy = ps(Rcpp::_, 2);
+
+  return Rcpp::sum(p_xy * log( p_xy / (p_x * p_y)));
+}
+
+
+// [[Rcpp::export]]
+double mutual_information2_(Rcpp::NumericMatrix& ps) {
   if (ps.ncol() != 3) {
     Rcpp::stop("Unexpected");
   }
@@ -40,6 +55,18 @@ double mutual_information2(Rcpp::NumericMatrix& ps) {
   Rcpp::NumericVector p_y = ps(Rcpp::_, 1);
   Rcpp::NumericVector p_xy = ps(Rcpp::_, 2);
   
-  
   return Rcpp::sum(p_xy * log2( p_xy / (p_x * p_y)));
+}
+
+// [[Rcpp::export]]
+double mutual_information10_(Rcpp::NumericMatrix& ps) {
+  if (ps.ncol() != 3) {
+    Rcpp::stop("Unexpected");
+  }
+  
+  Rcpp::NumericVector p_x = ps(Rcpp::_, 0);
+  Rcpp::NumericVector p_y = ps(Rcpp::_, 1);
+  Rcpp::NumericVector p_xy = ps(Rcpp::_, 2);
+  
+  return Rcpp::sum(p_xy * log10( p_xy / (p_x * p_y)));
 }

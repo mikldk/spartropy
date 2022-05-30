@@ -27,8 +27,9 @@ test_that("mutual_information", {
     2, 2, 
     2, 2
   ), ncol = 2, byrow = TRUE)
+  storage.mode(x) <- "integer"
   
-  ps <- frequencies_2d(x, 0, 1) |> normalise_2d()
+  ps <- frequencies_2d(x, 1, 2) |> normalise_2d()
   mi <- mutual_information2(ps)
   
   
@@ -61,11 +62,12 @@ test_that("mutual_information", {
     2, 2, 
     2, 2
   ), ncol = 2, byrow = TRUE)
+  storage.mode(x) <- "integer"
   
-  ps <- frequencies_2d(x, 0, 1) |> normalise_2d()
+  ps <- frequencies_2d(x, 1, 2) |> normalise_2d()
   mi <- mutual_information2(ps)
   
-  expect_equal(mi, mutual_information2_implicit(x, 0, 1))
+  expect_equal(mi, mutual_information2_implicit(x, 1, 2))
   
   ####
   
@@ -75,25 +77,60 @@ test_that("mutual_information", {
   x5 <- rbind(x4, x4, x4, x4, x4, x4, x4)
   x6 <- cbind(x5, rev(x5[, 1]))
   x_big <- x6
+  storage.mode(x_big) <- "integer"
   
-  expect_equal(frequencies_2d(x_big, 0, 1) |> normalise_2d() |> mutual_information2(), 
-               mutual_information2_implicit(x_big, 0, 1))
+  expect_equal(frequencies_2d(x_big, 1, 2) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, 1, 2))
   
-  expect_equal(frequencies_2d(x_big, c(0, 2), 1) |> normalise_2d() |> mutual_information2(), 
-               mutual_information2_implicit(x_big, c(0, 2), 1))
+  expect_equal(frequencies_2d(x_big, c(1, 3), 2) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, c(1, 3), 2))
   
-  expect_equal(frequencies_2d(x_big, c(0, 1), 2) |> normalise_2d() |> mutual_information2(), 
-               mutual_information2_implicit(x_big, c(0, 1), 2))
+  expect_equal(frequencies_2d(x_big, c(1, 2), 3) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, c(1, 2), 3))
   
-  expect_equal(frequencies_2d(x_big, 0, c(1, 2)) |> normalise_2d() |> mutual_information2(), 
-               mutual_information2_implicit(x_big, 0, c(1, 2)))
+  expect_equal(frequencies_2d(x_big, 1, c(2, 3)) |> normalise_2d() |> mutual_information2(), 
+               mutual_information2_implicit(x_big, 1, c(2, 3)))
   
   if (FALSE) {
     microbenchmark::microbenchmark(
-      frequencies_2d(x_big, c(0, 2), 1) |> normalise_2d() |> mutual_information2(),
-      mutual_information2_implicit(x_big, c(0, 2), 1)
+      frequencies_2d(x_big, c(1, 3), 2) |> normalise_2d() |> mutual_information2(),
+      mutual_information2_implicit(x_big, c(1, 3), 2)
     )
   }
 })
 
+
+
+test_that("entropy", {
+  x <- df2intmat(mtcars)
+  n <- frequencies(x)
+  e <- entropy(normalise(n2))
+  
+  expect_equal(e, 3.46573590279973)
+})
+
+test_that("entropy package", {
+  if (!require("entropy", quietly = TRUE)) {
+    skip()
+  }
+  
+  x <- df2intmat(mtcars[, 1:2])
+  n <- frequencies(x)
+  
+  e1 <- entropy::entropy.empirical(n, unit = "log2")
+  e2 <- entropy2(normalise(n))
+  
+  expect_equal(e1, e2)
+  
+  ##
+  
+  y2d <- table(x[, 1], x[, 2])
+  mi1 <- mi.empirical(y2d, unit = "log2")
+  
+  mi2 <- frequencies_2d(x, 1, 2) |> normalise_2d() |> mutual_information2()
+  expect_equal(mi1, mi2)
+  
+  mi2 <- mutual_information2_implicit(x, 1, 2)
+  expect_equal(mi1, mi2)
+})
 

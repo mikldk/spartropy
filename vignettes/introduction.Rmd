@@ -1,0 +1,188 @@
+---
+title: "Introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(spartropy)
+```
+
+
+# Identities
+
+## Entropy, $\mathrm{H}$
+
+Definition:
+
+\begin{align}
+  \mathrm{H}(X) &= - \sum_{x} P(X = x) \log_b P(X = x)
+\end{align}
+for some log with base $b$ and where the sum are over the possible values of $X$, denoted here by $x$.
+
+Note that $0 \log 0 = 0$ by convention as this corresponds also to the limit.
+
+In `spartropy` there are functions available for `log()` (natural logarithm), 
+`log2()` and `log10()`:
+
+* Entropy: `entropy()` (using `log()`), `entropy10()` (using `log10()`) and `entropy2()` (using `log2()`)
+
+
+Source: <https://en.wikipedia.org/wiki/Entropy_(information_theory)>
+
+## Conditional entropy, $\mathrm{H}(X \mid Y)$, and joint entropy, $\mathrm{H}(X, Y)$
+
+Definition:
+
+\begin{align}
+  \mathrm{H}(X \mid Y) 
+  &= - \sum_{x, y} P(X = x \mid Y = y) \log_b \frac{P(X = x \mid Y = y)}{P(Y = y)} \\
+  \mathrm{H}(X , Y) 
+  &= - \sum_{x, y} P(X = x \mid Y = y) \log_b P(X = x \mid Y = y) 
+\end{align}
+
+Formulas:
+
+\begin{align}
+  \mathrm{H}(X \mid Y) &= \mathrm{H}(X, Y) - \mathrm{H}(Y) \\
+  \mathrm{H}(Y \mid X) &= \mathrm{H}(X, Y) - \mathrm{H}(X) 
+\end{align}
+
+
+\begin{align}
+  \mathrm{H}(X , Y) 
+  &= \mathrm{H}(X \mid Y) + \mathrm{H}(Y) \\
+  &= \mathrm{H}(Y \mid X) + \mathrm{H}(X) 
+\end{align}
+
+Sources: <https://en.wikipedia.org/wiki/Conditional_entropy>, <https://en.wikipedia.org/wiki/Joint_entropy>
+
+## Mutual information, $\operatorname{I} (X; Y)$ (asymmetric in $X$ and $Y$)
+
+Definition:
+
+\begin{align}
+  \operatorname{I} (X; Y)
+  &= \sum_{x, y} P(X = x \mid Y = y) \log_b \frac{P(X = x \mid Y = y)}{P(X = x) P(Y = y)} 
+\end{align}
+
+Formulas:
+
+\begin{align}
+  \operatorname{I} (X; Y)
+  &= \mathrm{H}(X) - \mathrm{H}(X \mid Y)\\ 
+  &= \mathrm{H}(Y) - \mathrm{H}(Y \mid X)\\
+  &= \mathrm{H}(X) + \mathrm{H}(Y) - \mathrm{H}(X,Y) \\
+  &= \mathrm{H}(X,Y) - \mathrm{H}(X \mid Y) - \mathrm{H}(Y \mid X)
+\end{align}
+
+Source: <https://en.wikipedia.org/wiki/Mutual_information>
+
+## Shared information distance, $D(X, Y)$ (symmetric in $X$ and $Y$)
+
+\begin{align}
+  \operatorname{D} (X, Y)
+  &= \frac{ \mathrm{H}(X \mid Y) + \mathrm{H}(Y \mid X) }{\mathrm{H}(X,Y)} 
+\end{align}
+
+$0 \leq \operatorname{D} (X, Y) \leq 1$ with $\operatorname{D} (X, Y) = 0$ iff 
+$X$ and $Y$ are perfectly dependent (fully determined) and 
+$\operatorname{D} (X, Y) = 1$ iff
+$X$ and $Y$ are independent.
+
+
+## Independence 
+
+If $X$ and $Y$ are independent:
+
+\begin{align}
+  \mathrm{H} (Y \mid X) &= \mathrm {H}(Y) \\
+  \mathrm{H} (X \mid Y) &= \mathrm {H}(X) .
+\end{align}
+
+# Example
+
+Using `mtcars` data:
+
+```{r}
+head(mtcars)
+x <- df2intmat(mtcars) # Converting to categorical/integers
+head(x)
+```
+
+## $H(\text{mpg})$
+
+Entropy, $H$ of the `mpt` variable, i.e. $H(\text{mpg})$. 
+Note that `frequencies()` requires a matrix of observations so 
+we take one column:
+
+```{r}
+H_mpg <- frequencies(x[, "mpg", drop = FALSE]) |> normalise() |> entropy2()
+H_mpg
+```
+
+Let us take one command at a time:
+
+```{r}
+frequencies(x[, "mpg", drop = FALSE])
+frequencies(x[, "mpg", drop = FALSE]) |> normalise()
+frequencies(x[, "mpg", drop = FALSE]) |> normalise() |> entropy2()
+```
+
+## $H(\text{mpg}, \text{hp}, \text{wt})$
+
+```{r}
+H_joint <- frequencies(x[, c("mpg", "hp", "wt")]) |> normalise() |> entropy2()
+H_joint
+```
+
+## $I(\text{mpg}; \text{hp}, \text{wt})$
+
+```{r}
+idx_x <- match("mpg", colnames(x))
+idx_y <- match(c("hp", "wt"), colnames(x))
+I_mpg_hpwt <- frequencies_2d(x, idx_x, idx_y) |> normalise_2d() |> mutual_information2()
+I_mpg_hpwt
+```
+
+## $H(\text{mpg}; \text{hp}, \text{wt})$
+
+\begin{align}
+  \mathrm{H}(X \mid Y) &= \mathrm{H}(X) - \operatorname{I} (X; Y) \\
+  \mathrm{H}(\text{mpg} \mid \text{hp}, \text{wt}) 
+  &= \mathrm{H}(\text{mpg}) - \operatorname{I} (\text{mpg}; \text{hp}, \text{wt}) \\
+\end{align}
+
+```{r}
+H_mpg_hpwt <- H_mpg - I_mpg_hpwt
+H_mpg_hpwt
+```
+
+\begin{align}
+  \operatorname{D} (\text{mpg}, \{ \text{hp}, \text{wt} \})
+  &= \frac{ \mathrm{H}(\text{mpg} \mid \text{hp}, \text{wt}) + 
+    \mathrm{H}(\text{hp}, \text{wt} \mid \text{mpg}) }{\mathrm{H}(\text{mpg}, \text{hp}, \text{wt})} 
+\end{align}
+
+
+```{r}
+H_hpwt <- frequencies(x[, c("hp", "wt")]) |> normalise() |> entropy2()
+H_hpwt_mpg <- H_hpwt - I_mpg_hpwt
+H_hpwt_mpg
+D_mpg_hpwt <- (H_mpg_hpwt + H_hpwt_mpg) / H_joint
+D_mpg_hpwt
+```
+
+
+Thus, as $D$ is close to 0, then `hp` and `wt` says alot about `mpg` (and vica versa).
+
