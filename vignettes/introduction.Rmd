@@ -45,7 +45,7 @@ Definition:
 
 \begin{align}
   \mathrm{H}(X , Y) 
-  &= - \sum_{x, y} P(X = x , Y = y) \log_b P(X = x , Y = y) 
+  &= - \sum_{x, y} P(X = x , Y = y) \log P(X = x , Y = y) 
 \end{align}
 where the sum are over the possible values of $X$, denoted here by $x$, and over possible values of $Y$, denoted by $y$.
 
@@ -57,7 +57,7 @@ Definition:
 
 \begin{align}
   \mathrm{H}(X \mid Y) 
-  &= - \sum_{x, y} P(X = x , Y = y) \log_b \frac{P(X = x , Y = y)}{P(Y = y)} 
+  &= - \sum_{x, y} P(X = x , Y = y) \log \frac{P(X = x , Y = y)}{P(Y = y)} 
 \end{align}
 
 Formulas:
@@ -81,7 +81,7 @@ Definition:
 
 \begin{align}
   \operatorname{I} (X; Y)
-  &= \sum_{x, y} P(X = x , Y = y) \log_b \frac{P(X = x , Y = y)}{P(X = x) P(Y = y)} 
+  &= \sum_{x, y} P(X = x , Y = y) \log \frac{P(X = x , Y = y)}{P(X = x) P(Y = y)} 
 \end{align}
 
 Formulas:
