@@ -18,37 +18,46 @@ knitr::opts_chunk$set(
 library(spartropy)
 ```
 
+# Notes
 
-# Identities
+* **All variables in this package are considered to be categorical (discrete) variables**
+* Below $\log$ is used in a generic fashing -- any $\log$ with base $b$ goes
+  + Later we see that in `spartropy` there are functions available for `log()` (natural logarithm), `log2()` and `log10()`
+* Note that $0 \log 0 = 0$ by convention as this corresponds also to the limit
+
+
+# Definitions and formulas
 
 ## Entropy, $\mathrm{H}$
 
 Definition:
 
 \begin{align}
-  \mathrm{H}(X) &= - \sum_{x} P(X = x) \log_b P(X = x)
+  \mathrm{H}(X) &= - \sum_{x} P(X = x) \log P(X = x)
 \end{align}
-for some log with base $b$ and where the sum are over the possible values of $X$, denoted here by $x$.
-
-Note that $0 \log 0 = 0$ by convention as this corresponds also to the limit.
-
-In `spartropy` there are functions available for `log()` (natural logarithm), 
-`log2()` and `log10()`:
-
-* Entropy: `entropy()` (using `log()`), `entropy10()` (using `log10()`) and `entropy2()` (using `log2()`)
-
+where the sum are over the possible values of $X$, denoted here by $x$.
 
 Source: <https://en.wikipedia.org/wiki/Entropy_(information_theory)>
 
-## Conditional entropy, $\mathrm{H}(X \mid Y)$, and joint entropy, $\mathrm{H}(X, Y)$
+## Joint entropy, $\mathrm{H}(X, Y)$ (symmetric in $X$ and $Y$)
+
+Definition:
+
+\begin{align}
+  \mathrm{H}(X , Y) 
+  &= - \sum_{x, y} P(X = x , Y = y) \log_b P(X = x , Y = y) 
+\end{align}
+where the sum are over the possible values of $X$, denoted here by $x$, and over possible values of $Y$, denoted by $y$.
+
+Source: <https://en.wikipedia.org/wiki/Joint_entropy>
+
+## Conditional entropy, $\mathrm{H}(X \mid Y)$ (asymmetric in $X$ and $Y$)
 
 Definition:
 
 \begin{align}
   \mathrm{H}(X \mid Y) 
-  &= - \sum_{x, y} P(X = x \mid Y = y) \log_b \frac{P(X = x \mid Y = y)}{P(Y = y)} \\
-  \mathrm{H}(X , Y) 
-  &= - \sum_{x, y} P(X = x \mid Y = y) \log_b P(X = x \mid Y = y) 
+  &= - \sum_{x, y} P(X = x , Y = y) \log_b \frac{P(X = x , Y = y)}{P(Y = y)} 
 \end{align}
 
 Formulas:
@@ -58,22 +67,21 @@ Formulas:
   \mathrm{H}(Y \mid X) &= \mathrm{H}(X, Y) - \mathrm{H}(X) 
 \end{align}
 
-
 \begin{align}
   \mathrm{H}(X , Y) 
   &= \mathrm{H}(X \mid Y) + \mathrm{H}(Y) \\
   &= \mathrm{H}(Y \mid X) + \mathrm{H}(X) 
 \end{align}
 
-Sources: <https://en.wikipedia.org/wiki/Conditional_entropy>, <https://en.wikipedia.org/wiki/Joint_entropy>
+Source: <https://en.wikipedia.org/wiki/Conditional_entropy>
 
-## Mutual information, $\operatorname{I} (X; Y)$ (asymmetric in $X$ and $Y$)
+## Mutual information, $\operatorname{I} (X; Y)$ (symmetric in $X$ and $Y$)
 
 Definition:
 
 \begin{align}
   \operatorname{I} (X; Y)
-  &= \sum_{x, y} P(X = x \mid Y = y) \log_b \frac{P(X = x \mid Y = y)}{P(X = x) P(Y = y)} 
+  &= \sum_{x, y} P(X = x , Y = y) \log_b \frac{P(X = x , Y = y)}{P(X = x) P(Y = y)} 
 \end{align}
 
 Formulas:
@@ -83,7 +91,8 @@ Formulas:
   &= \mathrm{H}(X) - \mathrm{H}(X \mid Y)\\ 
   &= \mathrm{H}(Y) - \mathrm{H}(Y \mid X)\\
   &= \mathrm{H}(X) + \mathrm{H}(Y) - \mathrm{H}(X,Y) \\
-  &= \mathrm{H}(X,Y) - \mathrm{H}(X \mid Y) - \mathrm{H}(Y \mid X)
+  &= \mathrm{H}(X,Y) - \mathrm{H}(X \mid Y) - \mathrm{H}(Y \mid X) \\
+  \mathrm{H}(X \mid Y) &= \mathrm{H}(X) - \operatorname{I} (X; Y) 
 \end{align}
 
 Source: <https://en.wikipedia.org/wiki/Mutual_information>
@@ -110,52 +119,54 @@ If $X$ and $Y$ are independent:
   \mathrm{H} (X \mid Y) &= \mathrm {H}(X) .
 \end{align}
 
+
+
+# Functions
+
+* `entropyB(d)` calculates entropy $H(X)$ and joint entropy $H(\ldots)$
+* `entropy_condB(d, idx_x, idx_y)` calculates conditional entropy $H(X \mid Y)$ of `d[, idx_x]` **given** `d[, idx_y]`
+* `mutinfB(d, idx_x, idx_y)` calculates mutual information between `d[, idx_x]` and `d[, idx_y]`
+
+where `B` is either
+
+* `E` for natural logarithm
+* `2` for $\log2$
+* `10` for $\log10$
+
 # Example
 
 Using `mtcars` data:
 
 ```{r}
 head(mtcars)
-x <- df2intmat(mtcars) # Converting to categorical/integers
-head(x)
 ```
 
 ## $H(\text{mpg})$
 
-Entropy, $H$ of the `mpt` variable, i.e. $H(\text{mpg})$. 
-Note that `frequencies()` requires a matrix of observations so 
-we take one column:
+Entropy, $H$ of the `mpt` variable, i.e. $H(\text{mpg})$:
 
 ```{r}
-H_mpg <- frequencies(x[, "mpg", drop = FALSE]) |> normalise() |> entropy2()
+H_mpg <- entropyE(mtcars[, "mpg"])
 H_mpg
-```
-
-Let us take one command at a time:
-
-```{r}
-frequencies(x[, "mpg", drop = FALSE])
-frequencies(x[, "mpg", drop = FALSE]) |> normalise()
-frequencies(x[, "mpg", drop = FALSE]) |> normalise() |> entropy2()
 ```
 
 ## $H(\text{mpg}, \text{hp}, \text{wt})$
 
 ```{r}
-H_joint <- frequencies(x[, c("mpg", "hp", "wt")]) |> normalise() |> entropy2()
+H_joint <- entropyE(mtcars[, c("mpg", "hp", "wt")])
 H_joint
 ```
 
 ## $I(\text{mpg}; \text{hp}, \text{wt})$
 
 ```{r}
-idx_x <- match("mpg", colnames(x))
-idx_y <- match(c("hp", "wt"), colnames(x))
-I_mpg_hpwt <- frequencies_2d(x, idx_x, idx_y) |> normalise_2d() |> mutual_information2()
+idx_x <- match("mpg", colnames(mtcars))
+idx_y <- match(c("hp", "wt"), colnames(mtcars))
+I_mpg_hpwt <- mutinfE(mtcars, idx_x, idx_y)
 I_mpg_hpwt
 ```
 
-## $H(\text{mpg}; \text{hp}, \text{wt})$
+## $H(\text{mpg} \mid \text{hp}, \text{wt})$
 
 \begin{align}
   \mathrm{H}(X \mid Y) &= \mathrm{H}(X) - \operatorname{I} (X; Y) \\
@@ -166,6 +177,19 @@ I_mpg_hpwt
 ```{r}
 H_mpg_hpwt <- H_mpg - I_mpg_hpwt
 H_mpg_hpwt
+entropy_condE(mtcars, idx_x, idx_y)
+```
+
+\begin{align}
+  \mathrm{H}(\text{hp}, \text{wt} \mid \text{mpg}) 
+  &= \mathrm{H}(\text{hp}, \text{wt}) - \operatorname{I} (\text{mpg}; \text{hp}, \text{wt}) \\
+\end{align}
+
+```{r}
+H_hpwt <- entropyE(mtcars[, c("hp", "wt")])
+H_hpwt_mpg <- H_hpwt - I_mpg_hpwt
+H_hpwt_mpg
+entropy_condE(mtcars, idx_y, idx_x)
 ```
 
 \begin{align}
@@ -174,15 +198,11 @@ H_mpg_hpwt
     \mathrm{H}(\text{hp}, \text{wt} \mid \text{mpg}) }{\mathrm{H}(\text{mpg}, \text{hp}, \text{wt})} 
 \end{align}
 
-
 ```{r}
-H_hpwt <- frequencies(x[, c("hp", "wt")]) |> normalise() |> entropy2()
-H_hpwt_mpg <- H_hpwt - I_mpg_hpwt
-H_hpwt_mpg
 D_mpg_hpwt <- (H_mpg_hpwt + H_hpwt_mpg) / H_joint
 D_mpg_hpwt
+(entropy_condE(mtcars, idx_x, idx_y) + entropy_condE(mtcars, idx_y, idx_x)) / entropyE(mtcars[, c("mpg", "hp", "wt")])
 ```
-
 
 Thus, as $D$ is close to 0, then `hp` and `wt` says alot about `mpg` (and vica versa).
 

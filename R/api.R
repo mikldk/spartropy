@@ -1,206 +1,161 @@
-require_integer_matrix <- function(x) {
-  stopifnot(is.matrix(x))
-  stopifnot(is.integer(x))
+strict_convert_integer_matrix <- function(x) {
+  stopifnot(is.matrix(x) | is.data.frame(x) | is.vector(x))
+  
+  x2 <- x
+  
+  if (!is.data.frame(x2) && !is.matrix(x2)) {
+    dim(x2) <- c(length(x2), 1L)
+  }
+  
+  if (!is.integer(x2)) {
+    x2 <- df2intmat(x2)
+  }
+  
+  return(x2)
 }
 
-strict_convert_integer_vector <- function(x) {
+
+#' Entropy using `log()` (natural logarithm)
+#' 
+#' Se Introduction vignette for definition.
+#' 
+#' @param d Vector or matrix of observations
+#' 
+#' @export
+entropyE <- function(d) {
+  d <- strict_convert_integer_matrix(d)
+  ps <- normalise_(frequencies_(d))
+  return(entropyE_(ps))
+}
+
+#' Entropy using `log2()` 
+#' @inherit entropyE
+#' @export
+entropy2 <- function(d) {
+  d <- strict_convert_integer_matrix(d)
+  ps <- normalise_(frequencies_(d))
+  return(entropy2_(ps))
+}
+
+#' Entropy using `log10()`
+#' @inherit entropyE
+#' @export
+entropy10 <- function(d) {
+  d <- strict_convert_integer_matrix(d)
+  ps <- normalise_(frequencies_(d))
+  return(entropy10_(ps))
+}
+
+###############################################################
+
+strict_convert_integer_vector <- function(x, max_n) {
   stopifnot(is.vector(x))
   
   x2 <- as.integer(x)
   
   stopifnot(all(abs(x - x2) < 1e-6))
   
+  stopifnot(isTRUE(all(x2 >= 1L)))
+  stopifnot(isTRUE(all(x2 <= max_n)))
+  
   return(x2)
 }
 
-##############################
-
-#' Entropy using `log()` (natural logarithm)
-#' 
-#' @param p Vector of probabilities that constitutes a distribution (all >= 0 and <= 1 and sums to 1)
-#' 
-#' @export
-entropy <- function(p) {
-  return(entropy_(p))
-}
-
-#' Entropy using `log2()` 
-#' @inheritParams entropy
-#' @export
-entropy2 <- function(p) {
-  return(entropy2_(p))
-}
-
-#' Entropy using `log10()` 
-#' @inheritParams entropy
-#' @export
-entropy10 <- function(p) {
-  return(entropy10_(p))
-}
-
-##############################
-
-
-#' Frequencies
-#' 
-#' Similar to `table()`
-#' 
-#' @param x Integer matrix of data where each row is a single observation
-#' 
-#' @export
-frequencies <- function(x) {
-  require_integer_matrix(x)
+strict_convert_integer_Cppindex_vector <- function(x, max_n) {
+  x2 <- strict_convert_integer_vector(x, max_n)
   
-  return(frequencies_(x))
+  # -1 to get 0-based (for C++ indexing)
+  x2 <- x2 - 1L
+  
+  return(x2)
 }
 
-#' Normalise counts
-#' 
-#' @param x Integer vector of counts from [frequencies()]
-#' 
-#' @export
-normalise <- function(x) {
-  x <- strict_convert_integer_vector(x)
+strict_convert_integer_Rindex_vector <- function(x, max_n) {
+  x2 <- strict_convert_integer_vector(x, max_n)
   
-  return(normalise_(x))
+  return(x2)
 }
-
-
-#' Frequencies
-#' 
-#' Similar to `table()` for two sets of variables, $X$ and $Y$, 
-#' but returns a matrix with counts instead
-#' 
-#' @param x Integer matrix of data where each row is a single observation
-#' @param idx_x Indicies (integer vector) for variable set $X$
-#' @param idx_y Indicies (integer vector) for variable set $Y$
-#' 
-#' @export
-frequencies_2d <- function(x, idx_x, idx_y) {
-  require_integer_matrix(x)
-  
-  idx_x <- strict_convert_integer_vector(idx_x)
-  idx_y <- strict_convert_integer_vector(idx_y)
-
-  stopifnot(isTRUE(all(idx_x >= 1L)))
-  stopifnot(isTRUE(all(idx_y >= 1L)))
-  stopifnot(isTRUE(all(idx_x <= ncol(x))))
-  stopifnot(isTRUE(all(idx_y <= ncol(x))))
-  
-  # -1 to get 0-based
-  y <- frequencies_2d_(x, idx_x - 1L, idx_y - 1L)
-  
-  return(y)
-}
-
-#' Normalise counts
-#' 
-#' @param x Integer matrix of counts from [frequencies_2d()]
-#' 
-#' @export
-normalise_2d <- function(x) {
-  require_integer_matrix(x)
-  
-  return(normalise_2d_(x))
-}
-
-####################
 
 #' Mutual information using `log()` (natural logarithm)
 #' 
-#' @param Matrix of probabilities obtained from [frequencies_2d()] and [normalise_2d()]
+#' @param d Integer matrix of data where each row is a single observation
+#' @param idx_x Indicies (integer vector) for variable set $X$ (in 1 to `ncol(d)`)
+#' @param idx_y Indicies (integer vector) for variable set $Y$ (in 1 to `ncol(d)`)
 #' 
 #' @export
-mutual_information <- function(ps) {
-  y <- mutual_information_(ps)
-  return(y)
+mutinfE <- function(d, idx_x, idx_y) {
+  d <- strict_convert_integer_matrix(d)
+  idx_x <- strict_convert_integer_Cppindex_vector(idx_x, ncol(d))
+  idx_y <- strict_convert_integer_Cppindex_vector(idx_y, ncol(d))
+  return(mutual_informationE_implicit_(d, idx_x, idx_y))
 }
 
 #' Mutual information using `log2()`
-#' 
-#' @inheritParams mutual_information
-#' 
+#' @inherit mutinfE
 #' @export
-mutual_information2 <- function(ps) {
-  y <- mutual_information2_(ps)
-  return(y)
+mutinf2 <- function(d, idx_x, idx_y) {
+  d <- strict_convert_integer_matrix(d)
+  idx_x <- strict_convert_integer_Cppindex_vector(idx_x, ncol(d))
+  idx_y <- strict_convert_integer_Cppindex_vector(idx_y, ncol(d))
+  return(mutual_information2_implicit_(d, idx_x, idx_y))
 }
+
 
 #' Mutual information using `log10()`
-#' 
-#' @inheritParams mutual_information
-#' 
+#' @inherit mutinfE
 #' @export
-mutual_information10 <- function(ps) {
-  y <- mutual_information10_(ps)
-  return(y)
+mutinf10 <- function(d, idx_x, idx_y) {
+  d <- strict_convert_integer_matrix(d)
+  idx_x <- strict_convert_integer_Cppindex_vector(idx_x, ncol(d))
+  idx_y <- strict_convert_integer_Cppindex_vector(idx_y, ncol(d))
+  return(mutual_information10_implicit_(d, idx_x, idx_y))
 }
 
+###############################################################
 
-####################
-
-#' Mutual information using `log()` (natural logarithm)
+#' Conditional entropy of $X$ given $Y$ using `log()` (natural logarithm)
 #' 
-#' @inheritParams frequencies_2d
+#' @param d Integer matrix of data where each row is a single observation
+#' @param idx_x Indicies (integer vector) for variable set $X$ (in 1 to `ncol(d)`)
+#' @param idx_y Indicies (integer vector) for variable set $Y$ (in 1 to `ncol(d)`)
 #' 
 #' @export
-mutual_information_implicit <- function(x, idx_x, idx_y) {
-  require_integer_matrix(x)
+entropy_condE <- function(d, idx_x, idx_y) {
+  d <- strict_convert_integer_matrix(d)
+  idx_x <- strict_convert_integer_Rindex_vector(idx_x, ncol(d))
+  idx_y <- strict_convert_integer_Rindex_vector(idx_y, ncol(d))
   
-  idx_x <- strict_convert_integer_vector(idx_x)
-  idx_y <- strict_convert_integer_vector(idx_y)
+  Hxy <- entropyE(d[, c(idx_x, idx_y)])
+  Hy <- entropyE(d[, idx_y])
   
-  stopifnot(isTRUE(all(idx_x >= 1L)))
-  stopifnot(isTRUE(all(idx_y >= 1L)))
-  stopifnot(isTRUE(all(idx_x <= ncol(x))))
-  stopifnot(isTRUE(all(idx_y <= ncol(x))))
-  
-  # -1 to get 0-based
-  y <- mutual_information_implicit_(x, idx_x - 1L, idx_y - 1L)
-  
-  return(y)
+  return(Hxy - Hy)
 }
 
-#' Mutual information using `log2()`
-#' 
-#' @inheritParams frequencies_2d
-#' 
+#' Conditional entropy of $X$ given $Y$ using `log2()`
+#' @inherit entropy_condE
 #' @export
-mutual_information2_implicit <- function(x, idx_x, idx_y) {
-  require_integer_matrix(x)
+entropy_cond2 <- function(d, idx_x, idx_y) {
+  d <- strict_convert_integer_matrix(d)
+  idx_x <- strict_convert_integer_Rindex_vector(idx_x, ncol(d))
+  idx_y <- strict_convert_integer_Rindex_vector(idx_y, ncol(d))
   
-  idx_x <- strict_convert_integer_vector(idx_x)
-  idx_y <- strict_convert_integer_vector(idx_y)
+  Hxy <- entropy2(d[, c(idx_x, idx_y)])
+  Hy <- entropy2(d[, idx_y])
   
-  stopifnot(isTRUE(all(idx_x >= 1L)))
-  stopifnot(isTRUE(all(idx_y >= 1L)))
-  stopifnot(isTRUE(all(idx_x <= ncol(x))))
-  stopifnot(isTRUE(all(idx_y <= ncol(x))))
-  
-  # -1 to get 0-based
-  y <- mutual_information2_implicit_(x, idx_x - 1L, idx_y - 1L)
-  
-  return(y)
+  return(Hxy - Hy)
 }
 
-#' Mutual information using `log10()`
-#' 
-#' @inheritParams frequencies_2d
-#' 
+#' Conditional entropy of $X$ given $Y$ using `log10()`
+#' @inherit entropy_condE
 #' @export
-mutual_information10_implicit <- function(x, idx_x, idx_y) {
-  require_integer_matrix(x)
+entropy_cond10 <- function(d, idx_x, idx_y) {
+  d <- strict_convert_integer_matrix(d)
+  idx_x <- strict_convert_integer_Rindex_vector(idx_x, ncol(d))
+  idx_y <- strict_convert_integer_Rindex_vector(idx_y, ncol(d))
   
-  idx_x <- strict_convert_integer_vector(idx_x)
-  idx_y <- strict_convert_integer_vector(idx_y)
+  Hxy <- entropy10(d[, c(idx_x, idx_y)])
+  Hy <- entropy10(d[, idx_y])
   
-  stopifnot(isTRUE(all(idx_x >= 1L)))
-  stopifnot(isTRUE(all(idx_y >= 1L)))
-  stopifnot(isTRUE(all(idx_x <= ncol(x))))
-  stopifnot(isTRUE(all(idx_y <= ncol(x))))
-  
-  # -1 to get 0-based
-  y <- mutual_information10_implicit_(x, idx_x - 1L, idx_y - 1L)
-  
-  return(y)
+  return(Hxy - Hy)
 }
+

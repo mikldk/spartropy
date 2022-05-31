@@ -8,7 +8,6 @@
 #' df2intmat(x)
 #' 
 #' @param x Data frame
-#' @export
 df2intmat <- function(x) {
   y <- apply(x, 2, function(z) as.integer(factor(as.character(z))))
   return(y)

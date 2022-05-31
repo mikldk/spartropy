@@ -211,7 +211,7 @@ double mutual_information_implicit_worker(
 
 // H(i | j)
 // [[Rcpp::export]]
-double mutual_information_implicit_(
+double mutual_informationE_implicit_(
     Rcpp::IntegerMatrix& x, 
     Rcpp::IntegerVector& is, 
     Rcpp::IntegerVector& js) {

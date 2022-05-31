@@ -1,6 +1,6 @@
 Package: spartropy
 Type: Package
-Title: Sparse Entropy in High Dimensions
+Title: Sparse Entropy in High Dimensions from Observed Categorical Data
 Version: 1.0
 Date: 2022-05-25
 Authors@R: c(
@@ -8,7 +8,7 @@ Authors@R: c(
         email = "mikl@math.aau.dk", role = c("aut", "cre", "cph"))
   )
 Maintainer: Mikkel Meyer Andersen <mikl@math.aau.dk>
-Description: Calculates entropy for data with sparse support
+Description: Calculates entropy for observed data where high-dimensional tables need not be constructed explicitely
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.8)
 LinkingTo: Rcpp

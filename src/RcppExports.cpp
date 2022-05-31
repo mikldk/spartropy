@@ -10,14 +10,14 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// entropy_
-double entropy_(Rcpp::NumericVector& p);
-RcppExport SEXP _spartropy_entropy_(SEXP pSEXP) {
+// entropyE_
+double entropyE_(Rcpp::NumericVector& p);
+RcppExport SEXP _spartropy_entropyE_(SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(entropy_(p));
+    rcpp_result_gen = Rcpp::wrap(entropyE_(p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -43,14 +43,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mutual_information_
-double mutual_information_(Rcpp::NumericMatrix& ps);
-RcppExport SEXP _spartropy_mutual_information_(SEXP psSEXP) {
+// mutual_informationE_
+double mutual_informationE_(Rcpp::NumericMatrix& ps);
+RcppExport SEXP _spartropy_mutual_informationE_(SEXP psSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type ps(psSEXP);
-    rcpp_result_gen = Rcpp::wrap(mutual_information_(ps));
+    rcpp_result_gen = Rcpp::wrap(mutual_informationE_(ps));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -122,16 +122,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mutual_information_implicit_
-double mutual_information_implicit_(Rcpp::IntegerMatrix& x, Rcpp::IntegerVector& is, Rcpp::IntegerVector& js);
-RcppExport SEXP _spartropy_mutual_information_implicit_(SEXP xSEXP, SEXP isSEXP, SEXP jsSEXP) {
+// mutual_informationE_implicit_
+double mutual_informationE_implicit_(Rcpp::IntegerMatrix& x, Rcpp::IntegerVector& is, Rcpp::IntegerVector& js);
+RcppExport SEXP _spartropy_mutual_informationE_implicit_(SEXP xSEXP, SEXP isSEXP, SEXP jsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type is(isSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type js(jsSEXP);
-    rcpp_result_gen = Rcpp::wrap(mutual_information_implicit_(x, is, js));
+    rcpp_result_gen = Rcpp::wrap(mutual_informationE_implicit_(x, is, js));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -163,17 +163,17 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_spartropy_entropy_", (DL_FUNC) &_spartropy_entropy_, 1},
+    {"_spartropy_entropyE_", (DL_FUNC) &_spartropy_entropyE_, 1},
     {"_spartropy_entropy2_", (DL_FUNC) &_spartropy_entropy2_, 1},
     {"_spartropy_entropy10_", (DL_FUNC) &_spartropy_entropy10_, 1},
-    {"_spartropy_mutual_information_", (DL_FUNC) &_spartropy_mutual_information_, 1},
+    {"_spartropy_mutual_informationE_", (DL_FUNC) &_spartropy_mutual_informationE_, 1},
     {"_spartropy_mutual_information2_", (DL_FUNC) &_spartropy_mutual_information2_, 1},
     {"_spartropy_mutual_information10_", (DL_FUNC) &_spartropy_mutual_information10_, 1},
     {"_spartropy_frequencies_", (DL_FUNC) &_spartropy_frequencies_, 1},
     {"_spartropy_normalise_", (DL_FUNC) &_spartropy_normalise_, 1},
     {"_spartropy_frequencies_2d_", (DL_FUNC) &_spartropy_frequencies_2d_, 3},
     {"_spartropy_normalise_2d_", (DL_FUNC) &_spartropy_normalise_2d_, 1},
-    {"_spartropy_mutual_information_implicit_", (DL_FUNC) &_spartropy_mutual_information_implicit_, 3},
+    {"_spartropy_mutual_informationE_implicit_", (DL_FUNC) &_spartropy_mutual_informationE_implicit_, 3},
     {"_spartropy_mutual_information2_implicit_", (DL_FUNC) &_spartropy_mutual_information2_implicit_, 3},
     {"_spartropy_mutual_information10_implicit_", (DL_FUNC) &_spartropy_mutual_information10_implicit_, 3},
     {NULL, NULL, 0}

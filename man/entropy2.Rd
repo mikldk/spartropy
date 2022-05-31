@@ -4,11 +4,11 @@
 \alias{entropy2}
 \title{Entropy using `log2()`}
 \usage{
-entropy2(p)
+entropy2(d)
 }
 \arguments{
-\item{p}{Vector of probabilities that constitutes a distribution (all >= 0 and <= 1 and sums to 1)}
+\item{d}{Vector or matrix of observations}
 }
 \description{
-Entropy using `log2()`
+Se Introduction vignette for definition.
 }

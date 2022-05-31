@@ -6,7 +6,7 @@
 // [[Rcpp::plugins(cpp17)]] 
 
 // [[Rcpp::export]]
-double entropy_(Rcpp::NumericVector& p) {
+double entropyE_(Rcpp::NumericVector& p) {
   Rcpp::NumericVector plogp = p * Rcpp::log(p);
   double ent = - Rcpp::sum(plogp);
   return ent;
@@ -29,10 +29,8 @@ double entropy10_(Rcpp::NumericVector& p) {
 
 ////////////////////////////////////////////////////////
 
-// FIXME: Using function types instead?
-
-// [[Rcpp::export]]
-double mutual_information_(Rcpp::NumericMatrix& ps) {
+double mutual_information_worker_(Rcpp::NumericMatrix& ps, 
+                                  std::function<double(double)> log_func) {
   if (ps.ncol() != 3) {
     Rcpp::stop("Unexpected");
   }
@@ -40,33 +38,30 @@ double mutual_information_(Rcpp::NumericMatrix& ps) {
   Rcpp::NumericVector p_x = ps(Rcpp::_, 0);
   Rcpp::NumericVector p_y = ps(Rcpp::_, 1);
   Rcpp::NumericVector p_xy = ps(Rcpp::_, 2);
+  
+  size_t n = ps.nrow();
+  double s = 0.0;
+  
+  for (size_t i = 0; i < n; ++i) {
+    double p_xy_i = p_xy[i];
+    s += p_xy_i * log_func( p_xy_i / (p_x[i] * p_y[i]));
+  }
+  
+  return s;
+}
 
-  return Rcpp::sum(p_xy * log( p_xy / (p_x * p_y)));
+// [[Rcpp::export]]
+double mutual_informationE_(Rcpp::NumericMatrix& ps) {
+  return mutual_information_worker_(ps, (double(*)(double))&std::log);
 }
 
 
 // [[Rcpp::export]]
 double mutual_information2_(Rcpp::NumericMatrix& ps) {
-  if (ps.ncol() != 3) {
-    Rcpp::stop("Unexpected");
-  }
-  
-  Rcpp::NumericVector p_x = ps(Rcpp::_, 0);
-  Rcpp::NumericVector p_y = ps(Rcpp::_, 1);
-  Rcpp::NumericVector p_xy = ps(Rcpp::_, 2);
-  
-  return Rcpp::sum(p_xy * log2( p_xy / (p_x * p_y)));
+  return mutual_information_worker_(ps, (double(*)(double))&std::log2);
 }
 
 // [[Rcpp::export]]
 double mutual_information10_(Rcpp::NumericMatrix& ps) {
-  if (ps.ncol() != 3) {
-    Rcpp::stop("Unexpected");
-  }
-  
-  Rcpp::NumericVector p_x = ps(Rcpp::_, 0);
-  Rcpp::NumericVector p_y = ps(Rcpp::_, 1);
-  Rcpp::NumericVector p_xy = ps(Rcpp::_, 2);
-  
-  return Rcpp::sum(p_xy * log10( p_xy / (p_x * p_y)));
+  return mutual_information_worker_(ps, (double(*)(double))&std::log10);
 }
