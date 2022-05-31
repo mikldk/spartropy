@@ -97,7 +97,7 @@ Formulas:
 
 Source: <https://en.wikipedia.org/wiki/Mutual_information>
 
-## Shared information distance, $D(X, Y)$ (symmetric in $X$ and $Y$)
+## (Normalised) shared information distance, $D(X, Y)$ (symmetric in $X$ and $Y$)
 
 \begin{align}
   \operatorname{D} (X, Y)
@@ -109,6 +109,7 @@ $X$ and $Y$ are perfectly dependent (fully determined) and
 $\operatorname{D} (X, Y) = 1$ iff
 $X$ and $Y$ are independent.
 
+This measure is also sometimes called normalised independent information.
 
 ## Independence 
 

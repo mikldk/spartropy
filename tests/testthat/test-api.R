@@ -94,3 +94,52 @@ test_that("Conditional entropy", {
 })
 
 
+
+test_that("infdist", {
+  idx_x <- match("mpg", colnames(mtcars))
+  idx_y <- match(c("hp", "wt"), colnames(mtcars))
+  
+  
+  # E
+  H_joint <- entropyE(mtcars[, c("mpg", "hp", "wt")])
+  H_x <- entropyE(mtcars[, "mpg"])
+  H_y <- entropyE(mtcars[, c("hp", "wt")])
+  I_xy <- mutinfE(mtcars, idx_x, idx_y)
+  H_x_y <- H_x - I_xy
+  expect_equal(H_x_y, entropy_condE(mtcars, idx_x, idx_y))
+  H_y_x <- H_y - I_xy
+  expect_equal(H_y_x, entropy_condE(mtcars, idx_y, idx_x))
+  id <- (H_x_y + H_y_x) / H_joint
+  expect_equal(id, infdistE(mtcars, idx_x, idx_y))
+  expect_equal(id, infdistE(mtcars, idx_y, idx_x))
+  expect_equal(id, 0.1)
+  
+  
+  # 2
+  H_joint <- entropy2(mtcars[, c("mpg", "hp", "wt")])
+  H_x <- entropy2(mtcars[, "mpg"])
+  H_y <- entropy2(mtcars[, c("hp", "wt")])
+  I_xy <- mutinf2(mtcars, idx_x, idx_y)
+  H_x_y <- H_x - I_xy
+  expect_equal(H_x_y, entropy_cond2(mtcars, idx_x, idx_y))
+  H_y_x <- H_y - I_xy
+  expect_equal(H_y_x, entropy_cond2(mtcars, idx_y, idx_x))
+  id <- (H_x_y + H_y_x) / H_joint
+  expect_equal(id, infdist2(mtcars, idx_x, idx_y))
+  expect_equal(id, infdist2(mtcars, idx_y, idx_x))
+  expect_equal(id, 0.1)
+  
+  # 10
+  H_joint <- entropy10(mtcars[, c("mpg", "hp", "wt")])
+  H_x <- entropy10(mtcars[, "mpg"])
+  H_y <- entropy10(mtcars[, c("hp", "wt")])
+  I_xy <- mutinf10(mtcars, idx_x, idx_y)
+  H_x_y <- H_x - I_xy
+  expect_equal(H_x_y, entropy_cond10(mtcars, idx_x, idx_y))
+  H_y_x <- H_y - I_xy
+  expect_equal(H_y_x, entropy_cond10(mtcars, idx_y, idx_x))
+  id <- (H_x_y + H_y_x) / H_joint
+  expect_equal(id, infdist10(mtcars, idx_x, idx_y))
+  expect_equal(id, infdist10(mtcars, idx_y, idx_x))
+  expect_equal(id, 0.1)
+})
